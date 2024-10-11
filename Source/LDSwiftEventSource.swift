@@ -63,6 +63,10 @@ public class EventSource {
         public var headerTransform: HeaderTransform = { $0 }
         /// An initial value for the last-event-id header to be sent on the initial request
         public var lastEventId: String = ""
+        /// A closure that receives the HTTP response headers from the server when the connection is established.
+        /// This can be used to inspect or process the headers returned by the server.
+        /// - Parameters: A dictionary containing the headers, or `nil` if no headers are returned.
+        public var responseHeaders: (([AnyHashable : Any]?) -> Void)?
         
 #if canImport(os)
         /// Configure the logger that will be used.
@@ -320,6 +324,7 @@ class EventSourceDelegate: NSObject, URLSessionDataDelegate {
 
         // swiftlint:disable:next force_cast
         let httpResponse = response as! HTTPURLResponse
+        config.responseHeaders?(httpResponse.allHeaderFields)
         let statusCode = httpResponse.statusCode
         if (200..<300).contains(statusCode) && statusCode != 204 {
             reconnectionTimer.connectedTime = Date()
